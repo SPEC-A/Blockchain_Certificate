@@ -291,6 +291,7 @@ $(document).ready(function() {
     $('#contractLink').text(productRegistryContractAddress);
     $('#contractLink').attr('href', 'https://ropsten.etherscan.io/address/' + productRegistryContractAddress);
     
+
     // Attach AJAX "loading" event listener
     $(document).on({
         ajaxStart: function() { $("#loadingBox").show() },
@@ -352,7 +353,7 @@ $(document).ready(function() {
       });
       }
       else{
-        $('#myTable').append('<table border = "1", width = "100%"><tr><th rowspan = "6">인증서</th><td>address</td><td>' + strArray[0] + "</td></tr><tr><td>이름</td><td>" + strArray[1] + "</td></tr><tr><td>생년월일</td><td>" + strArray[2] + "</td></tr><tr><td>유효기간(시작)</td><td>" + notBefore  + "</td></tr><tr><td>유효기간(끝)</td><td>" + notAfter + "</td></tr><tr><td>ID</td><td>" + strArray[5] + '</td></tr></table>' );
+        $('#myTable').append('<table width = "100%"><tr><th rowspan = "6">인증서</th><td>address</td><td>' + strArray[0] + "</td></tr><tr><td>이름</td><td>" + strArray[1] + "</td></tr><tr><td>생년월일</td><td>" + strArray[2] + "</td></tr><tr><td>유효기간(시작)</td><td>" + notBefore  + "</td></tr><tr><td>유효기간(끝)</td><td>" + notAfter + "</td></tr><tr><td>ID</td><td>" + strArray[5] + '</td></tr></table>' );
       }
       
 		});  
