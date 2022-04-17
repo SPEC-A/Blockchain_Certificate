@@ -340,11 +340,16 @@ $(document).ready(function() {
 
       let toString = result.toString();
       let strArray = toString.split(",");
+      let cert_address = strArray[0];
+      let eff_date = strArray[3];
+      let exp_date = strArray[4];
+      let cert_id = strArray[5];
       let notBefore = new Date(strArray[3]*1000);
 			console.log("notBefore: " + notBefore);
       let notAfter = new Date(strArray[4]*1000);
 			console.log("notAfter: " + notAfter);
       console.log("ID: " + strArray[5]);
+
       $("#myTable").empty();
       if(strArray[1]==''){
         Toast.fire({
@@ -353,6 +358,21 @@ $(document).ready(function() {
       });
       }
       else{
+        $.ajax({  //db에 입력값 전송
+          url: '/usercert',
+          async: true,
+          type: 'POST',
+          data: {
+            cert_addr: cert_address,
+            eff: eff_date,
+            exp: exp_date,
+            id: cert_id
+          },
+          dataType: 'json',
+          success: function(data){console.log("성공");},
+          error: function(data){console.log("오류" + err);}
+        });
+  
         $('#myTable').append('<table width = "100%"><tr><th rowspan = "6">인증서</th><td>address</td><td>' + strArray[0] + "</td></tr><tr><td>이름</td><td>" + strArray[1] + "</td></tr><tr><td>생년월일</td><td>" + strArray[2] + "</td></tr><tr><td>유효기간(시작)</td><td>" + notBefore  + "</td></tr><tr><td>유효기간(끝)</td><td>" + notAfter + "</td></tr><tr><td>ID</td><td>" + strArray[5] + '</td></tr></table>' );
       }
       
@@ -465,7 +485,7 @@ $(document).ready(function() {
       let account = selectedAddress 
       console.log("my account " , account);
       let contract = web3.eth.contract(productRegistryContractABI).at(productRegistryContractAddress);
-
+  
       contract.deleteCert(function(err, result){
         if (err){
           Toast.fire({
@@ -474,6 +494,17 @@ $(document).ready(function() {
         });
         }
         else{
+          $.ajax({  //db에 입력값 전송
+            url: '/delete',
+            async: true,
+            type: 'DELETE',
+            data: {
+              addr: account
+            },
+            dataType: 'json',
+            success: function(data){console.log("성공");},
+            error: function(data){console.log("오류" + err);}
+          });
           Toast.fire({
             icon: 'success',
             title: 'Document successfully revoked to the registry.'
