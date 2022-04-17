@@ -389,13 +389,11 @@ $(document).ready(function() {
         
       let account = selectedAddress 
       console.log("my account " , account);
-    
       let userName = $("#usname").val();
       console.log("userName " , userName);
-
       let birth = $("#usbirth").val();
       console.log("userBirth " , birth);
-      
+
       let contract = web3.eth.contract(productRegistryContractABI).at(productRegistryContractAddress);
 
       contract.hasinfo(function(err,result){
@@ -407,6 +405,19 @@ $(document).ready(function() {
         });
         }
         else{
+          $.ajax({  //db에 입력값 전송
+            url: '/userinfo',
+            async: true,
+            type: 'POST',
+            data: {
+              name: userName,
+              birth: birth,
+              addr: account
+            },
+            dataType: 'json',
+            success: function(data){console.log("성공");},
+            error: function(data){console.log("오류" + err);}
+          });
           contract.issue(userName, birth, function(err, result) {
             if (err){
               Toast.fire({
@@ -471,27 +482,6 @@ $(document).ready(function() {
       });
     	
     }
-    //DB에 인증서 저장하는 코드 수정중
-    // async function Save(){
-    //   if (window.ethereum)
-		// 	try {
-		// 		await window.ethereum.enable(); //메타마스크와 연결되어있는가
-		// 	} catch (err) {
-    //             return showError("Access to your Ethereum account rejected.");
-		// 	}
-		//   if (typeof web3 === 'undefined')
-    //             return showError("Please install MetaMask to access the Ethereum Web3 injected API from your Web browser.");
-		
-    //   let account = selectedAddress 
-    //   console.log("my account " , account);
-    //   let contract = web3.eth.contract(productRegistryContractABI).at(productRegistryContractAddress);
-    //   contract.getCertificate(function(err, result) {
-      
-    //     let toString = result.toString();
-    //     let strArray = toString.split(",");
-    //     console.log("certificate: " + result);
-    //   })
-    // }
 
     async function documentVerifyButton() {
       const Toast = Swal.mixin({
