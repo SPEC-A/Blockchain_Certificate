@@ -1,4 +1,5 @@
 let express = require('express');
+let logger = require('./config/winston');
 let app = express();
 let router = require('./router/main')(app);
 let port = process.env.PORT || 3000;
@@ -14,7 +15,8 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended : false}));
 
 let server = app.listen(port, function(){
-    console.log("Express server has started on port "+ port)
+    console.log("Express server has started on port "+ port);
+    logger.info('Running')
 });
 
 conn.connect(function(err){
@@ -25,9 +27,20 @@ conn.connect(function(err){
 app.get('/userinfo',function(req,res){
     conn.query('SELECT * FROM user_info',function(err,data){
         res.set('Access-Control-Allow-Origin', '*');
+        res.set('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH')
+        res.set('Access-Control-Allow-Headers', 'X-Requested-With, Content-Type, Authorization');
+        res.send(data);
+    });
+});
+
+app.get('/certinfo',function(req,res){
+    var id = Number(request.param('addr'));
+    conn.query('SELECT cert_addr, user_name, user_birth, cert_effective_date, cert_expiration_date, cert_id FROM user_cert_info, user_info WHERE cert_id = user_pubkey AND cert_addr = ?',[id],function(err,data){
+        res.set('Access-Control-Allow-Origin', '*');
         res.set('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH');
         res.set('Access-Control-Allow-Headers', 'X-Requested-With, Content-Type, Authorization');
         res.send(data);
+        logger.info('Inquire certificate information')
     });
 });
 
@@ -44,6 +57,7 @@ app.post('/userinfo', function(req,res){
         res.send({
             message: '데이터를 추가했습니다.',
         });
+        logger.info('user information successfully saved');
     });
 });
 
@@ -53,7 +67,6 @@ app.delete('/delete', function(req,res){
         res.set('Access-Control-Allow-Origin', '*');
         res.set('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH');
         res.set('Access-Control-Allow-Headers', 'X-Requested-With, Content-Type, Authorization');
-        res.send(data);
     });
     conn.query('DELETE FROM user_cert_info WHERE cert_addr = ?',[account],function(err,data){
         res.set('Access-Control-Allow-Origin', '*');
@@ -61,6 +74,7 @@ app.delete('/delete', function(req,res){
         res.set('Access-Control-Allow-Headers', 'X-Requested-With, Content-Type, Authorization');
         res.send(data);
     });
+    logger.info('certificate successfully revoked');
 });
 
 app.post('/usercert',function(req,res){
@@ -78,18 +92,5 @@ app.post('/usercert',function(req,res){
         res.set('Access-Control-Allow-Headers', 'X-Requested-With, Content-Type, Authorization');
         res.send(data);
     });
-    // conn.query('SELECT * FROM user_cert_info where cert_addr =?',[cert_addr],function(err,data){
-    //     if(data){
-    //         res.send('data aready exist')
-    //     }
-    //     else{
-    //         conn.query('INSERT INTO user_cert_info(cert_addr, cert_effective_date, cert_expiration_date, cert_id) VALUES(?,?,?,?)',[cert_addr,eff,exp,id],function(err,data){
-    //             res.set('Access-Control-Allow-Origin', '*');
-    //             res.set('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH');
-    //             res.set('Access-Control-Allow-Headers', 'X-Requested-With, Content-Type, Authorization');
-    //             res.send(data);
-    //         });
-    //     };
-    // });
-    
+    logger.info('certificate successfully saved');
 });
