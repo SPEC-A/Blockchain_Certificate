@@ -291,7 +291,6 @@ $(document).ready(function() {
     $('#contractLink').text(productRegistryContractAddress);
     $('#contractLink').attr('href', 'https://ropsten.etherscan.io/address/' + productRegistryContractAddress);
     
-
     // Attach AJAX "loading" event listener
     $(document).on({
         ajaxStart: function() { $("#loadingBox").show() },
@@ -299,6 +298,7 @@ $(document).ready(function() {
     });
 
 	async function showTable() {
+    console.time("showTable");  //사용자가 버튼을 누른 순간부터 리스트가 반환될 때까지의 시간
     const Toast = Swal.mixin({
       toast: true,
       position: 'center-center',
@@ -326,8 +326,8 @@ $(document).ready(function() {
       });
       }
 		let contract = web3.eth.contract(productRegistryContractABI).at(productRegistryContractAddress);
-	
-
+    let account = selectedAddress 
+    console.time("callgetCert");  //getCertificate 호출-응답 시간
 		contract.getCertificate(function(err, result) {
 			if (err){
         Toast.fire({
@@ -335,20 +335,22 @@ $(document).ready(function() {
           title: 'Smart contract call failed :('
       });
       }
-
-			console.log("certificate: " + result);
+			// console.log("certificate: " + result);
+      console.timeEnd("callgetCert");
 
       let toString = result.toString();
       let strArray = toString.split(",");
       let cert_address = strArray[0];
+      let name = strArray[1];
+      let birth = strArray[2];
       let eff_date = strArray[3];
       let exp_date = strArray[4];
       let cert_id = strArray[5];
       let notBefore = new Date(strArray[3]*1000);
-			console.log("notBefore: " + notBefore);
+			//console.log("notBefore: " + notBefore);
       let notAfter = new Date(strArray[4]*1000);
-			console.log("notAfter: " + notAfter);
-      console.log("ID: " + strArray[5]);
+			// console.log("notAfter: " + notAfter);
+      // console.log("ID: " + strArray[5]);
 
       $("#myTable").empty();
       if(strArray[1]==''){
@@ -358,6 +360,7 @@ $(document).ready(function() {
       });
       }
       else{
+        console.time("ISuser_cert_info"); //DB에 입력값 전송-완료 시간
         $.ajax({  //db에 입력값 전송
           url: '/usercert',
           async: true,
@@ -366,20 +369,23 @@ $(document).ready(function() {
             cert_addr: cert_address,
             eff: eff_date,
             exp: exp_date,
-            id: cert_id
+            id: cert_id,
+            name: name,
+            birth: birth
           },
           dataType: 'json',
           success: function(data){console.log("성공");},
           error: function(data){console.log("오류" + err);}
         });
-  
+        console.timeEnd("ISuser_cert_info");
         $('#myTable').append('<table width = "100%"><tr><th rowspan = "6">인증서</th><td>address</td><td>' + strArray[0] + "</td></tr><tr><td>이름</td><td>" + strArray[1] + "</td></tr><tr><td>생년월일</td><td>" + strArray[2] + "</td></tr><tr><td>유효기간(시작)</td><td>" + notBefore  + "</td></tr><tr><td>유효기간(끝)</td><td>" + notAfter + "</td></tr><tr><td>ID</td><td>" + strArray[5] + '</td></tr></table>' );
       }
-      
-		});  
+      console.timeEnd("showTable");
+		});
   }
     
     async function itemUploadButton() {
+      console.time('submit');
       const Toast = Swal.mixin({
         toast: true,
         position: 'center-center',
@@ -405,19 +411,18 @@ $(document).ready(function() {
           title: 'Please install MetaMask to access the Ethereum Web3 injected API from your Web browser.'
       });
       }
-      //            return showError("Please install MetaMask to access the Ethereum Web3 injected API from your Web browser.");
         
       let account = selectedAddress 
-      console.log("my account " , account);
+      //console.log("my account: " , account);
       let userName = $("#usname").val();
-      console.log("userName " , userName);
+      //console.log("userName: " , userName);
       let birth = $("#usbirth").val();
-      console.log("userBirth " , birth);
+      //console.log("userBirth: " , birth);
 
       let contract = web3.eth.contract(productRegistryContractABI).at(productRegistryContractAddress);
 
+      console.time('callhasInfo');
       contract.hasinfo(function(err,result){
-        console.log(result)
         if (result == true){
           Toast.fire({
             icon: 'error',
@@ -425,6 +430,8 @@ $(document).ready(function() {
         });
         }
         else{
+          console.timeEnd('callhasInfo');
+          console.time('ISuser_info');
           $.ajax({  //db에 입력값 전송
             url: '/userinfo',
             async: true,
@@ -438,25 +445,30 @@ $(document).ready(function() {
             success: function(data){console.log("성공");},
             error: function(data){console.log("오류" + err);}
           });
+          console.timeEnd('ISuser_info');
+          console.time('callissue');
           contract.issue(userName, birth, function(err, result) {
             if (err){
               Toast.fire({
                 icon: 'error',
                 title: 'Smart contract call failed :('
-            });
+              });
             }
             else{
               Toast.fire({
                 icon: 'success',
                 title: 'Document successfully added to the registry.'
-            });
-          }
-          }); 
+              });
+            }
+          });
+          console.timeEnd('callissue');
+          console.timeEnd('submit');
         }
       })    
     }
 
     async function deletecertButton(){
+      console.time('delete');
       const Toast = Swal.mixin({
         toast: true,
         position: 'center-center',
@@ -483,17 +495,17 @@ $(document).ready(function() {
       });
       }
       let account = selectedAddress 
-      console.log("my account " , account);
+      console.log("account: " , account);
       let contract = web3.eth.contract(productRegistryContractABI).at(productRegistryContractAddress);
-  
-      contract.deleteCert(function(err, result){
-        if (err){
+      contract.hasinfo(function(err,result){
+        if(result == false){
           Toast.fire({
             icon: 'error',
-            title: 'Smart contract call failed :('
-        });
+            title: 'Your certificate does not exist'
+          });
         }
         else{
+          console.time('delDB_data')
           $.ajax({  //db에 입력값 전송
             url: '/delete',
             async: true,
@@ -505,13 +517,18 @@ $(document).ready(function() {
             success: function(data){console.log("성공");},
             error: function(data){console.log("오류" + err);}
           });
+        }
+        console.timeEnd('delDB_data');
+        console.time('callDeleteCert');
+        contract.deleteCert(function(err, result){
           Toast.fire({
             icon: 'success',
-            title: 'Document successfully revoked to the registry.'
-        });
-      }
-      });
-    	
+            title: 'your certification is successfully revoked'
+          });
+        })
+        console.timeEnd('callDeleteCert');
+        console.timeEnd('delete');
+      })
     }
 
     async function documentVerifyButton() {
@@ -548,7 +565,6 @@ $(document).ready(function() {
       let id = $("#vcertId").val();
       
       contract.verification2(name,birth,notBefore,notAfter,id,function(err,result){
-        console.log(result);
         if (err){
           Toast.fire({
             icon: 'error',

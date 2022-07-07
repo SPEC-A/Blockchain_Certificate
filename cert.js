@@ -471,27 +471,6 @@ $(document).ready(function() {
       });
     	
     }
-    //DB에 인증서 저장하는 코드 수정중
-    // async function Save(){
-    //   if (window.ethereum)
-		// 	try {
-		// 		await window.ethereum.enable(); //메타마스크와 연결되어있는가
-		// 	} catch (err) {
-    //             return showError("Access to your Ethereum account rejected.");
-		// 	}
-		//   if (typeof web3 === 'undefined')
-    //             return showError("Please install MetaMask to access the Ethereum Web3 injected API from your Web browser.");
-		
-    //   let account = selectedAddress 
-    //   console.log("my account " , account);
-    //   let contract = web3.eth.contract(productRegistryContractABI).at(productRegistryContractAddress);
-    //   contract.getCertificate(function(err, result) {
-      
-    //     let toString = result.toString();
-    //     let strArray = toString.split(",");
-    //     console.log("certificate: " + result);
-    //   })
-    // }
 
     async function documentVerifyButton() {
       const Toast = Swal.mixin({
